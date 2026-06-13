@@ -1,0 +1,3 @@
+model,model_label,wins
+tree,Árvore,0
+svm,SVM,50

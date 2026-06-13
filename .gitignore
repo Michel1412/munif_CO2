@@ -1,0 +1,49 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+pipeline_co2_executed.ipynb
+
+# --- IDE / editor ---
+.cursor/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Logs (regeneráveis) ---
+logs/
+*.log
+
+# --- Dados intermediários (regeneráveis pelo step1_prepare.py) ---
+data/dataset.csv
+data/dataset.xlsx
+data/processed/
+
+# --- Modelos treinados (regeneráveis pelo step2_train.py) ---
+models/
+
+# --- Figuras (regeneráveis pelo step3_report.py) ---
+reports/figures/
+
+# --- Sistema operacional ---
+.DS_Store
+Thumbs.db
+
+# ============================================================
+# MANTIDOS NO REPOSITÓRIO (não ignorar):
+#   reports/*.csv
+#   reports/*.xlsx
+#   reports/summary.txt
+# ============================================================

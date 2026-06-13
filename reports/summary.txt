@@ -1,0 +1,3 @@
+SVM apresentou melhor desempenho em 50 países.
+Árvore apresentou melhor desempenho em 0 países.
+SVM foi o modelo superior na maioria dos cenários.
