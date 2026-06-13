@@ -197,6 +197,14 @@ Ou com opções:
 
 Equivalente em Python: `python run.py [opções]`
 
+**Notebook interativo (localhost):**
+
+```bash
+./jupyter.sh              # abre http://localhost:8888
+./jupyter.sh --lab        # JupyterLab
+./jupyter.sh --no-browser # só exibe o link no terminal
+```
+
 **Etapa por etapa:**
 
 ```bash
