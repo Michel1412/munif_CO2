@@ -179,6 +179,26 @@ Registro detalhado de execução (download, treino, erros por país).
 
 ## Como regenerar os resultados
 
+**Forma mais simples (recomendada):**
+
+```bash
+./run.sh
+```
+
+Ou com opções:
+
+```bash
+./run.sh --model svm          # previsão 2027 com SVM (padrão)
+./run.sh --model tree         # previsão 2027 com Árvore
+./run.sh --setup-only         # só cria .venv e instala dependências
+./run.sh --from-step 3        # retoma a partir dos relatórios
+./run.sh --workers 4          # paralelismo no treinamento
+```
+
+Equivalente em Python: `python run.py [opções]`
+
+**Etapa por etapa:**
+
 ```bash
 python step1_prepare.py   # prepara dados
 python step2_train.py     # treina modelos
