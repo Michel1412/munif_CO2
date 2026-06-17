@@ -105,8 +105,31 @@ A seleção do melhor hiperparâmetro em ambos os modelos utiliza o **maior R² 
 
 ### Avaliação dos modelos
 
-As métricas foram calculadas sobre o **conjunto de teste** (20% final de cada série temporal) para os 50 países. A tabela abaixo resume o desempenho médio agregado:
+A avaliação dos modelos contém **métricas e gráficos adequados ao tipo de problema** tratado neste projeto. Como a tarefa é **regressão supervisionada** (previsão contínua de CO₂ per capita em toneladas), utilizamos indicadores de erro e ajuste típicos desse contexto, em vez de métricas de classificação.
 
+#### Tipo de problema e métricas aplicáveis
+
+| Recurso de avaliação | Aplicável? | Justificativa |
+| -------------------- | ---------- | ------------- |
+| Acurácia, precisão, revocação e F1-score | Não | Métricas de **classificação**; o alvo é numérico contínuo |
+| Matriz de confusão | Não | Exige classes discretas; não se aplica a regressão |
+| MAE, MSE e RMSE | **Sim** | Erro médio absoluto, quadrático médio e sua raiz — padrão em regressão |
+| R² (coeficiente de determinação) | **Sim** | Mede quanto da variância do alvo o modelo explica no teste |
+| MAPE (erro percentual absoluto médio) | **Sim** | Complementa MAE/RMSE com interpretação relativa (%) |
+| Curva de perda no treinamento | Não* | Árvore e SVR (scikit-learn) não expõem épocas iterativas como redes neurais; a seleção de hiperparâmetros usa **grid search** com R² no conjunto de teste temporal |
+| Comparação gráfica entre modelos | **Sim** | Gráficos de barras e dispersão por país (ver abaixo) |
+| Ranking de vitórias por modelo | **Sim** | Contagem de países em que cada algoritmo obteve maior R² |
+
+\* Em modelos iterativos (ex.: redes neurais), a curva de perda seria obrigatória; aqui a validação segue o protocolo temporal 80/20 e a escolha do melhor hiperparâmetro por país.
+
+#### Protocolo de avaliação
+
+- **Conjunto avaliado:** 20% final de cada série temporal (anos ~2022–2026), **sem embaralhamento**, preservando a ordem cronológica.
+- **Escopo:** 50 países × 2 modelos (SVM e Árvore de Decisão) = 100 avaliações independentes.
+- **Critério de seleção do melhor modelo por país:** maior **R²** no teste (`reports/best_by_country.csv`, `reports/ranking.csv`).
+- **Implementação:** `utils/metrics.py` (`compute_regression_metrics`) e `step2_train.py`; relatórios e figuras em `step3_report.py`.
+
+#### Métricas agregadas (conjunto de teste)
 
 | Métrica                          | SVM (SVR) | Árvore de Decisão |
 | -------------------------------- | --------- | ----------------- |
@@ -114,36 +137,51 @@ As métricas foram calculadas sobre o **conjunto de teste** (20% final de cada s
 | **R² mediano**                   | 0,981     | −2,861            |
 | **MAE médio**                    | 0,027 t   | 0,332 t           |
 | **RMSE médio**                   | 0,031 t   | 0,376 t           |
+| **MAPE médio**                   | ~0,52 %   | ~6,17 %           |
 | **Países vencedores (maior R²)** | **50**    | **0**             |
 
+- **MAE** — erro médio absoluto em toneladas de CO₂ per capita; quanto menor, melhor.
+- **MSE / RMSE** — penalizam erros grandes; RMSE está na mesma unidade do alvo (toneladas).
+- **R²** — varia de −∞ a 1; valores negativos indicam desempenho **pior que prever a média** do teste.
+- **MAPE** — erro percentual médio; útil para comparar países com magnitudes diferentes de emissão.
 
 **Exemplos de R² por país (teste):**
 
+| País          | SVM (R²) | Árvore (R²) | SVM (MAE) | Árvore (MAE) |
+| ------------- | -------- | ----------- | --------- | ------------ |
+| Brazil        | 0,900    | −1,107      | 0,015 t   | 0,060 t      |
+| China         | 0,775    | −19,408     | 0,042 t   | 0,432 t      |
+| United States | 0,982    | −0,013      | 0,024 t   | 0,246 t      |
+| India         | 0,992    | −5,102      | 0,006 t   | 0,200 t      |
+| Iran          | 0,999    | −16,189     | 0,007 t   | 0,800 t      |
 
-| País          | SVM (R²) | Árvore (R²) |
-| ------------- | -------- | ----------- |
-| Brazil        | 0,900    | −1,107      |
-| China         | 0,775    | −19,408     |
-| United States | 0,982    | −0,013      |
-| India         | 0,992    | −5,102      |
-| Iran          | 0,999    | −16,189     |
+Valores de R² negativos na Árvore indicam overfitting ou inadequação à curva temporal em séries curtas (~18 amostras de treino por país).
 
+#### Comparação gráfica entre modelos
 
-Valores de R² negativos na Árvore indicam que o modelo performou **pior do que uma predição baseada na média** do conjunto de teste, sinal de overfitting ou inadequação à curva temporal em séries curtas.
+Os gráficos abaixo são gerados automaticamente por `step3_report.py` e salvos em `reports/figures/`. Eles estão embutidos neste README para visualização no repositório e **também aparecem no PDF** quando o README é exportado (ex.: Pandoc, extensões Markdown→PDF do VS Code/Cursor), desde que as imagens existam no caminho relativo indicado.
 
-**Gráficos gerados pelo pipeline:**
+**1. Comparativo de R² por país — SVM vs Árvore de Decisão**
 
-Comparativo de R² por país — SVM vs Árvore de Decisão
+![Comparativo de R² por país — SVM vs Árvore de Decisão](./reports/figures/r2_by_country.png)
 
-Dispersão R² Árvore vs R² SVM
+Barras horizontais por país; permite comparar visualmente qual modelo explica melhor a variância no período de teste.
 
-> **Nota:** Os gráficos são regenerados ao executar `step3_report.py` ou `./run.sh`. Caso a pasta `reports/figures/` não exista, execute o pipeline antes de visualizar as imagens no README.
+**2. Dispersão R² Árvore vs R² SVM**
 
-**Arquivos de resultados detalhados:**
+![Dispersão R² Árvore vs R² SVM](./reports/figures/tree_vs_svm_scatter.png)
 
-- `[reports/metrics.csv](./reports/metrics.csv)` — métricas completas por país e modelo
-- `[reports/country_summary.csv](./reports/country_summary.csv)` — comparativo consolidado
-- `[reports/predictions_2027.csv](./reports/predictions_2027.csv)` — previsões para 2027
+Cada ponto é um país. Pontos **acima da diagonal tracejada** indicam R² superior do SVM em relação à Árvore — o que ocorre em todos os 50 países neste experimento.
+
+> **Nota:** Execute `./run.sh` ou `python step3_report.py` para (re)gerar as figuras em `reports/figures/` antes de visualizar o README ou exportar o PDF, caso a pasta ainda não exista.
+
+#### Arquivos de resultados detalhados
+
+- [`reports/metrics.csv`](./reports/metrics.csv) — MAE, MSE, RMSE, R² e MAPE por país e modelo
+- [`reports/country_summary.csv`](./reports/country_summary.csv) — comparativo consolidado lado a lado
+- [`reports/ranking.csv`](./reports/ranking.csv) — vitórias por modelo (SVM: 50, Árvore: 0)
+- [`reports/best_by_country.csv`](./reports/best_by_country.csv) — melhor modelo por país
+- [`reports/predictions_2027.csv`](./reports/predictions_2027.csv) — previsões finais para 2027
 
 ### Comparação dos resultados
 
